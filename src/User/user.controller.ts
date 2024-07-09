@@ -1,0 +1,54 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+} from '@nestjs/common';
+import { UserService } from './user.service';
+import { CreateRegistrationDto } from './dto/create-registration.dto';
+import { UpdateRegistrationDto } from './dto/update-registration.dto';
+import { UserLoginDto } from './dto/user-login.dto';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Post('registeruser')
+  registerUser(@Body() createRegistrationDto: CreateRegistrationDto) {
+    return this.userService.registerUser(createRegistrationDto);
+  }
+
+  @Patch('updateuser/:id')
+  // @Patch('updateuser/:id')
+  updateUser(
+    @Param('id') id: string,
+    @Body() updateRegistrationDto: UpdateRegistrationDto,
+  ) {
+    return this.userService.updateUser(+id, updateRegistrationDto);
+  }
+
+  @Post('login')
+  @HttpCode(200)
+  loginUser(@Body() login: UserLoginDto) {
+    return this.userService.loginUser(login);
+  }
+
+  // @Get()
+  // findAll() {
+  //   return this.userService.findAll();
+  // }
+
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.userService.findOne(+id);
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.userService.remove(+id);
+  // }
+}
