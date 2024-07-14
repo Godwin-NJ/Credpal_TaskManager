@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -10,6 +11,8 @@ import { UserLoginDto } from './dto/user-login.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+
 // import { NotFoundError } from 'rxjs';
 
 @Injectable()
@@ -19,13 +22,21 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
 
-  registerUser(userDto: CreateRegistrationDto): Promise<User> {
+  async registerUser(userDto: CreateRegistrationDto): Promise<User> {
+    const userExist = await this.usersRepository.find({
+      where: { emailAddress: userDto.emailAddress },
+    });
+
+    if (userExist.length > 0) {
+      throw new BadRequestException('User already exist');
+    }
+    const hashedPassword = await this.hashPassword(userDto.password);
     const user: User = new User();
     user.firstName = userDto.firstName;
     user.lastName = userDto.lastName;
     user.emailAddress = userDto.emailAddress;
     user.phoneNumber = userDto.phoneNumber;
-    user.password = userDto.password; // this password is meant to be hashed
+    user.password = hashedPassword; // this password is meant to be hashed
     user.isActive = userDto.isActive;
     user.createDate = userDto.createdDate ? userDto.createdDate : new Date(); // set this default from the entity;
     return this.usersRepository.save(user);
@@ -55,23 +66,49 @@ export class UserService {
   }
 
   async loginUser(loginUserDto: UserLoginDto) {
-    //hash password and check for validatory as well
-    //this should contain the token as well
-    const validUser = await this.usersRepository.findOne({
+    const userExist = await this.usersRepository.findOne({
       where: {
         emailAddress: loginUserDto.EmailAddress,
-        password: loginUserDto.Password, //validate hashed password
       },
-    }); //payload for jwt && assign to req.user
-    if (!validUser || validUser == null) {
+    });
+
+    if (!userExist || userExist == null) {
+      throw new BadRequestException('User does not exist');
+    }
+
+    const validUser = await this.compareHashedPassword(
+      loginUserDto.Password,
+      userExist.password,
+    );
+
+    if (!validUser) {
       throw new UnauthorizedException();
     }
-    const payload = { ...validUser };
-    const generateJwtToken = await this.jwtService.signAsync(payload); //this should be a stand alone method or service
-    // return -> object , JWT token
 
-    return { user: validUser, token: generateJwtToken };
+    const payload = { ...userExist };
+    const generateJwtToken = await this.jwtService.signAsync(payload);
+
+    return { user: userExist, token: generateJwtToken };
   }
+
+  hashPassword = async (password: string) => {
+    try {
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const hash = await bcrypt.hash(password, salt);
+      return hash;
+    } catch (error) {
+      throw new BadRequestException('Error hashing password');
+    }
+  };
+
+  compareHashedPassword = async (password, hashPassword) => {
+    const isValid = await bcrypt.compare(password, hashPassword);
+    if (!isValid) {
+      return false;
+    }
+    return true;
+  };
 
   //I need to have a middleware to validate the token being sent -> Very important
 

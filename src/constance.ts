@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 
-export const constance = {
+export const jwtConstants = {
   // secret: new ConfigService().get<string>('jwtSecret'),
   // secret: process.env.jwtSecret,
   secret:
