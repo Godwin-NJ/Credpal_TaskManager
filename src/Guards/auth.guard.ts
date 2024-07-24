@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import {
   CanActivate,
   ExecutionContext,
@@ -34,7 +36,8 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: jwtConstants.secret,
+        secret: process.env.jwtSecret,
+        // secret: jwtConstants.secret,
       });
       request['user'] = payload;
     } catch (error) {

@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
@@ -14,7 +16,8 @@ import { APP_GUARD } from '@nestjs/core';
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       global: true,
-      secret: jwtConstants.secret,
+      secret: process.env.jwtSecret,
+      // secret: jwtConstants.secret,
       // secret: new ConfigService().get<string>('jwtSecret'),
       signOptions: { expiresIn: '60s' },
     }),
