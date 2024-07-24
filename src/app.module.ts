@@ -7,6 +7,7 @@ import { UserModule } from './User/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './User/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -19,9 +20,11 @@ import { ConfigModule } from '@nestjs/config';
       password: process.env.DBPassword,
       database: process.env.DbDatabase,
       entities: [User],
-      // synchronize: true, //shouldn't be used in production - otherwise you can lose production data
+      autoLoadEntities: true,
+      synchronize: true, //shouldn't be used in production - otherwise you can lose production data
     }),
     UserModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [AppService],

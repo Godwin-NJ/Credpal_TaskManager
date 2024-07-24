@@ -19,7 +19,7 @@ import { APP_GUARD } from '@nestjs/core';
       secret: process.env.jwtSecret,
       // secret: jwtConstants.secret,
       // secret: new ConfigService().get<string>('jwtSecret'),
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [UserController],
@@ -30,5 +30,6 @@ import { APP_GUARD } from '@nestjs/core';
       useClass: AuthGuard,
     },
   ],
+  exports: [UserService],
 })
 export class UserModule {}

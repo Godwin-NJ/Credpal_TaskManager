@@ -3,7 +3,10 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  ExecutionContext,
+  Inject,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
 import { UpdateRegistrationDto } from './dto/update-registration.dto';
@@ -12,6 +15,8 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { request, Request } from 'express';
+// import { REQUEST } from '@nestjs/core';
 
 // import { NotFoundError } from 'rxjs';
 
@@ -19,6 +24,7 @@ import * as bcrypt from 'bcrypt';
 export class UserService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
+    // @Inject(REQUEST) private readonly request: Request,
     private jwtService: JwtService,
   ) {}
 
@@ -109,6 +115,12 @@ export class UserService {
     }
     return true;
   };
+
+  async getUserFromToken<T = Request>(request?: T) {
+    const userPayload = await request['user'];
+    // console.log({ userPayload });
+    return userPayload;
+  }
 
   //I need to have a middleware to validate the token being sent -> Very important
 

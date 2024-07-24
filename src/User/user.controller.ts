@@ -8,7 +8,10 @@ import {
   Delete,
   HttpCode,
   UseGuards,
+  ExecutionContext,
+  Req,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { UserService } from './user.service';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
 import { UpdateRegistrationDto } from './dto/update-registration.dto';
@@ -39,6 +42,13 @@ export class UserController {
   @HttpCode(200)
   loginUser(@Body() login: UserLoginDto) {
     return this.userService.loginUser(login);
+  }
+
+  // @AllowAnon()
+  @Get('getUserInformation')
+  @HttpCode(200)
+  getUserInformation(@Req() req: Request) {
+    return this.userService.getUserFromToken(req);
   }
 
   // @Get()
