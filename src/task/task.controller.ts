@@ -7,11 +7,12 @@ import {
   Param,
   Delete,
   Req,
+  HttpCode,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { AllowAnon } from 'src/auth.decorators';
+// import { AllowAnon } from 'src/auth.decorators';
 import { request, Request } from 'express';
 
 @Controller('task')
@@ -20,27 +21,38 @@ export class TaskController {
 
   // @AllowAnon()
   @Post('createTask')
-  create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request) {
+  @HttpCode(201)
+  createTask(@Body() createTaskDto: CreateTaskDto, @Req() req: Request) {
     return this.taskService.createTask(createTaskDto, req);
   }
 
-  @Get()
-  findAll() {
+  @Get('getAllTask')
+  @HttpCode(200)
+  getAllTask() {
     return this.taskService.getAllTask();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get('getTask/:id')
+  @HttpCode(200)
+  getTask(@Param('id') id: number) {
     return this.taskService.getTask(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+  @Patch('updateTask/:id')
+  @HttpCode(200)
+  updateTask(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto) {
     return this.taskService.updateTask(+id, updateTaskDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.taskService.deleteTask(+id);
+  @Delete('deletSingleTask/:id')
+  @HttpCode(200)
+  deleteSingleTask(@Param('id') id: number) {
+    return this.taskService.deleteSingleTask(+id);
+  }
+
+  @Delete('deletTasks')
+  @HttpCode(200)
+  deleteTasks(@Body() ids: number[]) {
+    return this.taskService.deleteSingleTask(+ids);
   }
 }

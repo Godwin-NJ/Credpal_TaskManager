@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from '../User/user.service';
 import { request, Request } from 'express';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class TaskService {
@@ -30,19 +31,54 @@ export class TaskService {
     return this.taskRepository.save(task);
   }
 
-  getAllTask() {
-    return `This action returns all task`;
+  async getAllTask() {
+    const allTask = await this.taskRepository.find();
+
+    return allTask;
   }
 
-  getTask(id: number) {
-    return `This action returns a #${id} task`;
+  async getTask(id: number) {
+    const task = await this.taskRepository.find({
+      where: {
+        id: id,
+      },
+    });
+    return task;
   }
 
-  updateTask(id: number, updateTaskDto: UpdateTaskDto) {
-    return `This action updates a #${id} task`;
+  async updateTask(id: number, updateTaskDto: UpdateTaskDto) {
+    const task = new Task();
+
+    task.task = updateTaskDto.task;
+    task.title = updateTaskDto.taskTitle;
+    task.assignedTo = updateTaskDto.assignedTo;
+    // task.userId = userInfo.id;
+    // task.createDate = new Date();
+
+    const validUser = await this.taskRepository.find({
+      where: {
+        id,
+      },
+    });
+
+    if (!validUser) {
+      return new NotFoundException('invalid user');
+    }
+
+    return this.taskRepository.update(id, task);
   }
 
-  deleteTask(id: number) {
-    return `This action removes a #${id} task`;
+  async deleteSingleTask(id: number) {
+    const validUser = await this.taskRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Task)
+      .where('id = :id', { id })
+      .execute();
+  }
+
+  async deleteTasks(ids: number[]) {
+    const validUser = await this.taskRepository.delete(ids);
+    return validUser;
   }
 }
