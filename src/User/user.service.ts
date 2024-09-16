@@ -33,7 +33,7 @@ export class UserService {
       where: { emailAddress: userDto.emailAddress },
     });
 
-    if (userExist.length > 0) {
+    if (userExist) {
       throw new BadRequestException('User already exist');
     }
     const hashedPassword = await this.hashPassword(userDto.password);
@@ -48,9 +48,9 @@ export class UserService {
     return this.usersRepository.save(user);
   }
 
-  updateUser(id: number, userUpdateDto: UpdateRegistrationDto) {
+  async updateUser(id: number, userUpdateDto: UpdateRegistrationDto) {
     // const user = new User();
-    const updateUser = this.usersRepository
+    const updateUser = await this.usersRepository
       .createQueryBuilder()
       .update(User)
       .set({
@@ -68,7 +68,7 @@ export class UserService {
 
     //user.id = id;
     //user.lastName = userUpdateDto.
-    return updateUser;
+    return { affected: updateUser.affected, status: true };
   }
 
   async loginUser(loginUserDto: UserLoginDto) {
@@ -108,12 +108,13 @@ export class UserService {
     }
   };
 
-  compareHashedPassword = async (password, hashPassword) => {
+  compareHashedPassword = async (password: string, hashPassword: string) => {
     const isValid = await bcrypt.compare(password, hashPassword);
-    if (!isValid) {
-      return false;
-    }
-    return true;
+    // if (!isValid) {
+    //   return false;
+    // }
+    // return true;
+    return isValid; //returns a boolean
   };
 
   async getUserFromToken<T = Request>(request?: T) {
